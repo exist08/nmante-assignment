@@ -4,6 +4,19 @@ import useAxiosHook from "../Components/useAxios/useAxiosHook";
 
 const AppContainer = () => {
   const [data, setData] = useState([]);
+  const [eventsData, setEventsData] = useState([]);
+  const [activeEvent, setActiveEvent] = useState(0);
+  const [eventName, setEventName] = useState("");
+  const [description, setDescription] = useState("");
+  const [startDate, setStartDate] = useState(null);
+  const [startTime, setStartTime] = useState(null);
+  const [endDate, setEndDate] = useState(null);
+  const [endTime, setEndTime] = useState(null);
+  const [hideEndTime, setHideEndTime] = useState(false);
+  const [location, setLocation] = useState("");
+  const [hideLocation, setHideLocation] = useState(false);
+  const [dressCode, setDressCode] = useState("");
+  const [eventId, setEventId] = useState("");
 
   const [{ data: dataRes, loading: dataResLoading }, dataCall] = useAxiosHook(
     {
@@ -16,40 +29,89 @@ const AppContainer = () => {
     }
   );
 
+  const [{ data: sendDataRes, loading: sendDataResLoading }, sendDataCall] =
+    useAxiosHook(
+      {
+        url: `https://www.nimante.com/api/events/`,
+        method: "post",
+        data: {},
+      },
+      {
+        manual: true,
+      }
+    );
+
+  const [
+    { data: updateDataRes, loading: updateDataResLoading },
+    updateDataCall,
+  ] = useAxiosHook(
+    {
+      url: `https://www.nimante.com/api/events/${eventId}/`,
+      method: "put",
+      data: {},
+    },
+    {
+      manual: true,
+    }
+  );
+
   useEffect(() => {
-    if (dataRes) {
+    if (dataRes || updateDataRes) {
       console.log(dataRes);
       setData(dataRes);
     }
-  }, [dataRes]);
+  }, [dataRes, updateDataRes]);
+
+  useEffect(() => {
+    setDescription(data[activeEvent]?.description);
+    setEventName(data[activeEvent]?.name);
+    setDressCode(data[activeEvent]?.event_details?.dress_code)
+    setEventId(data[activeEvent]?.id)
+  }, [data,activeEvent]);
 
   useEffect(() => {
     dataCall();
   }, []);
 
-  const [activeEvent, setActiveEvent] = useState(0);
-  const [eventName, setEventName] = useState("");
-  const [description, setDescription] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [startTime, setStartTime] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [endTime, setEndTime] = useState("");
-  const [hideEndTime, setHideEndTime] = useState(false);
-  const [location, setLocation] = useState("");
-  const [hideLocation, setHideLocation] = useState(false);
-  const [dressCode, setDressCode] = useState("");
+  // sendDataCall({
+
+  // })
+
+  const updateDataHanlder = (e) => {
+    e.preventDefault();
+    const updatedData = {
+      event_details: {
+        location: null,
+        dress_code: dressCode,
+        hide_end_time: true,
+        even_logo:
+          "https://nmtn-img-files.s3.us-east-2.amazonaws.com/Event+Icon_Haldi.png",
+      },
+      date_announced: true,
+      hide_location: true,
+      name: eventName,
+      description: description,
+      start_time: null,
+      end_time: null,
+      schedule: 6,
+    };
+    updateDataCall(updatedData);
+  };
 
   return (
     <div className="app-container">
       <div className="main">
         <div className="events-list">
           {data.map((dat, idx) => {
-            const { name, event_details, start_time } = dat;
+            const { name, event_details, start_time,id } = dat;
             return (
               <div
                 className={`event-btn ${activeEvent == idx ? "active" : ""}`}
                 key={idx}
-                onClick={() => setActiveEvent(idx)}
+                onClick={() => {
+                  setActiveEvent(idx);
+                  setEventId(id);
+                }}
               >
                 <div
                   className="imgBox"
@@ -152,7 +214,14 @@ const AppContainer = () => {
                 />
               </div>
               <div className="update-btn">
-                <button type="submit">Update</button>
+                <button
+                  onClick={(e) => {
+                    setEventId(data[activeEvent]?.id);
+                    updateDataHanlder(e);
+                  }}
+                >
+                  Update
+                </button>
               </div>
             </form>
           </div>

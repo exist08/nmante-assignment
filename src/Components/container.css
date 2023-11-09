@@ -32,7 +32,7 @@ form.event-form .update-btn {
     text-align: center;
     margin-top: 40px;
 }
-form.event-form .update-btn button[type="submit"] {
+form.event-form .update-btn button {
   background-color: #a01e22;
   border-radius: 6px;
   border: none;
